@@ -1,3 +1,18 @@
+### How to Run
+
+**Database Setup:**
+   * Create a new database in MySQL ```ticket_db```
+   * Update your credentials in `config/app_local.php`.
+     
+**Run Migrations:**
+
+  * `bin/cake migrations migrate`
+   
+**Start Server:**
+   * `bin/cake server`
+
+
+
 # Support Ticketing System
 
 ## Project Description
