@@ -38,11 +38,9 @@ class UsersTable extends Table
     public function initialize(array $config): void
     {
         parent::initialize($config);
-
         $this->setTable('users');
         $this->setDisplayField('username');
         $this->setPrimaryKey('id');
-
         $this->addBehavior('Timestamp');
     }
 
@@ -69,9 +67,7 @@ class UsersTable extends Table
 
         $validator
             ->allowEmptyString('confirm_password', null, 'update')
-
             ->sameAs('confirm_password', 'password', 'The password and confirm password fields must match.');
-            
 
         return $validator;
     }
@@ -86,7 +82,6 @@ class UsersTable extends Table
     public function buildRules(RulesChecker $rules): RulesChecker
     {
         $rules->add($rules->isUnique(['username']), ['errorField' => 'username']);
-
         return $rules;
     }
 }

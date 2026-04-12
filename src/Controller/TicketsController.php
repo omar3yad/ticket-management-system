@@ -37,8 +37,23 @@ public function index()
         $query->where(['priority' => $this->request->getQuery('priority')]);
     }
     $tickets = $this->paginate($query);
+    $statsQuery = $this->Tickets->find();
+    $stats = $statsQuery
+        ->select([
+            'status',
+            'count' => $statsQuery->func()->count('*')
+        ])
+        ->where(['user_id' => $userId])
+        ->groupBy(['status'])
+        ->all();
+    $counts = [0 => 0, 1 => 0, 2 => 0]; 
+    foreach ($stats as $stat) {
+        $counts[$stat->status] = $stat->count;
+    }
 
-    $this->set(compact('tickets'));
+    $tickets = $this->paginate($query);
+    $this->set(compact('tickets', 'counts'));
+    // $this->set(compact('tickets'));
 }
 
     /**
@@ -71,8 +86,6 @@ public function index()
         $ticket = $this->Tickets->newEmptyEntity();
         if ($this->request->is('post')) {
             $data = $this->request->getData();
-            $data['user_id'] = $this->Authentication->getIdentity()->getIdentifier();
-            $ticket = $this->Tickets->patchEntity($ticket, $data);
             $recaptchaToken = $data['g-recaptcha-response'] ?? '';
             $secretKey = "6LdrsaYsAAAAAC8iPq8fT92Is1cFLXjdq2s06nc_";
 
@@ -95,9 +108,10 @@ public function index()
                 $this->Flash->error(__('reCAPTCHA verification failed. Please try again.'));
                 return $this->redirect($this->referer());
             }
+            $data['user_id'] = $this->Authentication->getIdentity()->getIdentifier();
 
             $ticket = $this->Tickets->patchEntity($ticket, $data);
-
+        $ticket->user_id = $this->Authentication->getIdentity()->getIdentifier();
             if (!$ticket->getErrors()) {
                 $attachment = $this->request->getData('attachment_file');
                 unset($data['attachment_file']);
@@ -120,6 +134,10 @@ public function index()
                 }
 
                 if ($this->Tickets->save($ticket)) {
+                    $this->Tickets->updateAll(
+        ['user_id' => $this->Authentication->getIdentity()->getIdentifier()],
+        ['id' => $ticket->id]
+    );
                     $this->Flash->success(__('The ticket has been saved.'));
                     return $this->redirect(['action' => 'index']);
                 }
@@ -194,4 +212,55 @@ public function edit($id = null)
 
         return $this->redirect(['action' => 'index']);
     }
+
+
+public function export()
+{
+    $userId = $this->Authentication->getIdentity()->getIdentifier();
+        $tickets = $this->Tickets->find()
+        ->where(['user_id' => $userId]) ->order(['created' => 'DESC'])->all();
+
+    $this->response = $this->response->withDownload('my_tickets_' . date('Y-m-d') . '.csv');
+    
+    $header = ['ID', 'Subject', 'Customer Name', 'Email', 'Priority', 'Status', 'Date Created'];
+    
+    $stream = fopen('php://temp', 'w');
+    
+    fprintf($stream, chr(0xEF).chr(0xBB).chr(0xBF));
+        fputcsv($stream, $header);
+
+    foreach ($tickets as $ticket) {
+        fputcsv($stream, [
+            $ticket->id,
+            $ticket->subject,
+            $ticket->customer_name,
+            $ticket->customer_email,
+            $ticket->priority === 2 ? 'High' : ($ticket->priority === 1 ? 'Medium' : 'Low'),
+            $ticket->getStatusLabel(),
+            $ticket->created->format('Y-m-d H:i')
+        ]);
+    }
+    rewind($stream);
+    $content = stream_get_contents($stream);fclose($stream);
+    $this->response = $this->response->withType('csv')->withStringBody($content);
+    return $this->response;
+}
+
+public function changeStatus($id = null)
+{
+    $this->request->allowMethod(['post', 'put']); 
+    
+    $ticket = $this->Tickets->get($id);
+    
+    $status = $this->request->getData('status');
+    $ticket->status = $status;
+
+    if ($this->Tickets->save($ticket)) {
+        $this->Flash->success(__('Status updated successfully.'));
+    } else {
+        $this->Flash->error(__('Failed to update status. Please, try again.'));
+    }
+
+    return $this->redirect(['action' => 'index']);
+}
 }

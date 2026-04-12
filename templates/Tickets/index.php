@@ -34,9 +34,31 @@
     </div>
     <?= $this->Form->end() ?>
 </div>
+
+<div class="row dashboard-container">
+    <div class="column">
+        <div class="stat-card card-open">
+            <h5 class="stat-label"><?= __('Open') ?></h5>
+            <h2 class="stat-count count-open"><?= $counts[0] ?? 0 ?></h2>
+        </div>
+    </div>
+    <div class="column">
+        <div class="stat-card card-progress">
+            <h5 class="stat-label"><?= __('In Progress') ?></h5>
+            <h2 class="stat-count count-progress"><?= $counts[1] ?? 0 ?></h2>
+        </div>
+    </div>
+    <div class="column">
+        <div class="stat-card card-closed">
+            <h5 class="stat-label"><?= __('Closed') ?></h5>
+            <h2 class="stat-count count-closed"><?= $counts[2] ?? 0 ?></h2>
+        </div>
+    </div>
+</div>
 <div class="tickets index content">
     
-    <?= $this->Html->link(__('New Ticket'), ['action' => 'add'], ['class' => 'button float-right']) ?>
+    <?= $this->Html->link(__('Export to CSV'), ['action' => 'export'], ['class' => 'button float-right']) ?>
+    <?= $this->Html->link(__('New Ticket'), ['action' => 'add'], ['class' => 'button float-right',  'style' => 'margin-right: 10px;']) ?>
     <h3><?= __('Tickets') ?></h3>
     <div class="table-responsive">
         <table>
@@ -83,17 +105,20 @@
             
             <td class="actions">
                 <?= $this->Html->link(__('View'), ['action' => 'view', $ticket->id], ['class' => 'btn-view']) ?>
-                <?= $this->Html->link(__('Edit'), ['action' => 'edit', $ticket->id], ['class' => 'btn-edit']) ?>
+                <?= $this->Html->link(__('Edit'), ['action' => 'edit', $ticket->id], ['class' => 'btn-edit'], ) ?>
                 
-                <?php if ($ticket->status !== \App\Model\Entity\Ticket::STATUS_CLOSED): ?>
-                    <?= $this->Form->postLink(__('Close'), ['action' => 'edit', $ticket->id], [
-                        'data' => ['status' => \App\Model\Entity\Ticket::STATUS_CLOSED],
-                        'confirm' => __('Are you sure you want to close ticket # {0}?', $ticket->id),
-                        'style' => 'color: green; font-weight: bold;'
-                    ]) ?>
+                <?php if ($ticket->status !== \App\Model\Entity\Ticket::STATUS_CLOSED): ?>    
+<?= $this->Form->postLink(__('Close'), 
+    ['action' => 'changeStatus', $ticket->id],
+    [
+        'data' => ['status' => \App\Model\Entity\Ticket::STATUS_CLOSED],
+        'confirm' => __('Are you sure?'),
+        'class' => 'btn-close',
+        'style' => 'color: orange; font-weight: bold;'
+    ]
+) ?>
                 <?php endif; ?>
-
-                <?= $this->Form->postLink(__('Delete'), ['action' => 'delete', $ticket->id], ['confirm' => __('Are you sure?'), 'class' => 'btn-delete']) ?>
+                <?= $this->Form->postLink(__('Delete'), ['action' => 'delete', $ticket->id], ['confirm' => __('Are you sure?'), 'class' => 'btn-delete', 'style' => 'color: red; font-weight: bold;']) ?>
             </td>
         </tr>
         <?php endforeach; ?>
@@ -119,7 +144,6 @@
     }
 
     .status-closed {
-        background-color: #f9f9f9 !important;
         color: #999;
     }
 
@@ -137,4 +161,44 @@
         margin-right: 5px;
         display: inline-block;
     }
+    .dashboard-container {
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        padding: 2rem;
+        border-radius: 0.8rem;
+        background-color: #fff;
+
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .stat-label {
+        color: #606c76;
+        margin-bottom: 1rem;
+        text-transform: uppercase;
+        font-size: 1.2rem;
+        letter-spacing: 0.1rem;
+    }
+
+    .stat-count {
+        margin: 0;
+        font-weight: bold;
+        font-size: 3.2rem;
+    }
+
+    .card-open { border-top: 5px solid #d33c44; }
+    .count-open { color: #d33c44; }
+
+    .card-progress { border-top: 5px solid #f0ad4e; }
+    .count-progress { color: #f0ad4e; }
+
+    .card-closed { border-top: 5px solid #5cb85c; }
+    .count-closed { color: #5cb85c; }
 </style>
+

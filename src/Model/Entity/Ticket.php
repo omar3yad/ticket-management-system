@@ -56,9 +56,11 @@ class Ticket extends Entity
         'message' => true,
         'priority' => true,
         'status' => true,
+        'user_id' => true,
         'attachment' => true,
         'created' => true,
         'modified' => true,
         'notes' => true,
+        
     ];
 }

@@ -103,7 +103,7 @@
     <?= $this->Form->create(null, ['id' => 'note-form']) ?>
         <?= $this->Form->hidden('ticket_id', ['value' => $ticket->id]) ?>
         <?= $this->Form->control('note_text', ['type' => 'textarea', 'label' => 'Note Content', 'required' => true]) ?>
-        <button type="submit" class="button">Save Note via AJAX</button>
+        <button type="submit" class="button">Save Note</button>
     <?= $this->Form->end() ?>
 </div>
     </div>
