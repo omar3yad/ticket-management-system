@@ -23,6 +23,23 @@ use Cake\ORM\Entity;
  */
 class Ticket extends Entity
 {
+    public const PRIORITY_LOW = 0;
+    public const PRIORITY_MEDIUM = 1;
+    public const PRIORITY_HIGH = 2;
+
+    public const STATUS_OPEN = 0;
+    public const STATUS_IN_PROGRESS = 1;
+    public const STATUS_CLOSED = 2;
+
+    public function getStatusLabel(): string
+    {
+        return match($this->status) {
+            self::STATUS_OPEN => 'Open',
+            self::STATUS_IN_PROGRESS => 'In Progress',
+            self::STATUS_CLOSED => 'Closed',
+            default => 'Unknown',
+        };
+    }
     /**
      * Fields that can be mass assigned using newEntity() or patchEntity().
      *

@@ -48,7 +48,6 @@ class UsersController extends AppController
             $user = $this->Users->patchEntity($user, $this->request->getData());
             if ($this->Users->save($user)) {
                 $this->Flash->success(__('The user has been saved.'));
-
                 return $this->redirect(['action' => 'index']);
             }
             $this->Flash->error(__('The user could not be saved. Please, try again.'));
@@ -63,20 +62,28 @@ class UsersController extends AppController
      * @return \Cake\Http\Response|null|void Redirects on successful edit, renders view otherwise.
      * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
      */
-    public function edit($id = null)
-    {
-        $user = $this->Users->get($id, contain: []);
-        if ($this->request->is(['patch', 'post', 'put'])) {
-            $user = $this->Users->patchEntity($user, $this->request->getData());
-            if ($this->Users->save($user)) {
-                $this->Flash->success(__('The user has been saved.'));
 
-                return $this->redirect(['action' => 'index']);
-            }
-            $this->Flash->error(__('The user could not be saved. Please, try again.'));
+
+public function edit($id = null)
+{
+    $user = $this->Users->get($id);
+    if ($this->request->is(['patch', 'post', 'put'])) {
+        $data = $this->request->getData();
+        
+        if (empty($data['password'])) {
+            unset($data['password']);
+            unset($data['confirm_password']);
         }
-        $this->set(compact('user'));
+
+        $user = $this->Users->patchEntity($user, $data);
+        if ($this->Users->save($user)) {
+            $this->Flash->success(__('The user has been updated.'));
+            return $this->redirect(['action' => 'index']);
+        }
+        $this->Flash->error(__('The user could not be updated. Please, try again.'));
     }
+    $this->set(compact('user'));
+}
 
     /**
      * Delete method
@@ -111,7 +118,7 @@ class UsersController extends AppController
             return $this->redirect(['controller' => 'Tickets', 'action' => 'index']);
         }
         if ($this->request->is('post') && !$result->isValid()) {
-            $this->Flash->error('اسم المستخدم أو كلمة المرور غير صحيحة');
+            $this->Flash->error('Username or password is incorrect');
         }
     }
 

@@ -9,15 +9,25 @@
     <div style="display: flex; gap: 10px; align-items: flex-end;overflow-x: auto;">
         <?= $this->Form->control('search', ['label' => 'Search', 'value' => $this->request->getQuery('search'), 'placeholder' => 'Subject or Name...']) ?>
         
-        <?= $this->Form->control('status', [
-            'options' => ['' => 'All Statuses', 'Open' => 'Open', 'In Progress' => 'In Progress', 'Closed' => 'Closed'],
-            'value' => $this->request->getQuery('status')
-        ]) ?>
+<?= $this->Form->control('status', [
+    'options' => [
+        '' => 'All Statuses', 
+        \App\Model\Entity\Ticket::STATUS_OPEN => 'Open', 
+        \App\Model\Entity\Ticket::STATUS_IN_PROGRESS => 'In Progress', 
+        \App\Model\Entity\Ticket::STATUS_CLOSED => 'Closed'
+    ],
+    'value' => $this->request->getQuery('status')
+]) ?>
 
-        <?= $this->Form->control('priority', [
-            'options' => ['' => 'All Priorities', 'Low' => 'Low', 'Medium' => 'Medium', 'High' => 'High'],
-            'value' => $this->request->getQuery('priority')
-        ]) ?>
+<?= $this->Form->control('priority', [
+    'options' => [
+        '' => 'All Priorities', 
+        \App\Model\Entity\Ticket::PRIORITY_LOW => 'Low', 
+        \App\Model\Entity\Ticket::PRIORITY_MEDIUM => 'Medium', 
+        \App\Model\Entity\Ticket::PRIORITY_HIGH => 'High'
+    ],
+    'value' => $this->request->getQuery('priority')
+]) ?>
 
         <?= $this->Form->button(__('Filter'), ['class' => 'button']) ?>
         <?= $this->Html->link(__('Reset'), ['action' => 'index'], ['class' => 'button button-outline']) ?>
@@ -42,49 +52,53 @@
                     <th class="actions"><?= __('Actions') ?></th>
                 </tr>
             </thead>
-<tbody>
-    <?php foreach ($tickets as $ticket): 
-        $rowClass = '';
-        if ($ticket->priority === 'High') $rowClass = 'priority-high';
-        if ($ticket->status === 'Closed') $rowClass = 'status-closed';
-    ?>
-    <tr class="<?= $rowClass ?>">
-        <td><?= $this->Number->format($ticket->id) ?></td>
-        <td><strong><?= h($ticket->subject) ?></strong></td>
-        <td><?= h($ticket->customer_name) ?></td>
-        <td><?= h($ticket->customer_email) ?></td>
-        
-        <td>
-            <span class="badge-priority <?= strtolower($ticket->priority) ?>">
-                <?= h($ticket->priority) ?>
-            </span>
-        </td>
-
-        <td><?= h($ticket->status) ?></td>
-        <td><?= h($ticket->created->format('Y-m-d')) ?></td>
-        
-        <td class="actions">
-            <?= $this->Html->link(__('View'), ['action' => 'view', $ticket->id], ['class' => 'btn-view']) ?>
-            <?= $this->Html->link(__('Edit'), ['action' => 'edit', $ticket->id], ['class' => 'btn-edit']) ?>
+    <tbody>
+        <?php foreach ($tickets as $ticket): 
+            $rowClass = '';
+            if ($ticket->priority === \App\Model\Entity\Ticket::PRIORITY_HIGH) $rowClass = 'priority-high';
+            if ($ticket->status === \App\Model\Entity\Ticket::STATUS_CLOSED) $rowClass = 'status-closed';
+        ?>
+        <tr class="<?= $rowClass ?>">
+            <td><?= $this->Number->format($ticket->id) ?></td>
+            <td><strong><?= h($ticket->subject) ?></strong></td>
+            <td><?= h($ticket->customer_name) ?></td>
+            <td><?= h($ticket->customer_email) ?></td>
             
-            <?php if ($ticket->status !== 'Closed'): ?>
-                <?= $this->Form->postLink(__('Close'), ['action' => 'edit', $ticket->id], [
-                    'data' => ['status' => 'Closed'],
-                    'confirm' => __('هل أنت متأكد من إغلاق التذكرة رقم {0}؟', $ticket->id),
-                    'style' => 'color: green; font-weight: bold;'
-                ]) ?>
-            <?php endif; ?>
+            <td>
+                <?php 
+                    $pClass = match($ticket->priority) {
+                        \App\Model\Entity\Ticket::PRIORITY_HIGH => 'high',
+                        \App\Model\Entity\Ticket::PRIORITY_MEDIUM => 'medium',
+                        default => 'low',
+                    };
+                ?>
+                <span class="badge-priority <?= $pClass ?>">
+                    <?= $ticket->priority === 2 ? 'High' : ($ticket->priority === 1 ? 'Medium' : 'Low') ?>
+                </span>
+            </td>
 
-            <?= $this->Form->postLink(
-                __('Delete'),
-                ['action' => 'delete', $ticket->id],
-                ['confirm' => __('Are you sure you want to delete # {0}?', $ticket->id), 'class' => 'btn-delete']
-            ) ?>
-        </td>
-    </tr>
-    <?php endforeach; ?>
-</tbody>
-        </table>
+            <td><?= h($ticket->getStatusLabel()) ?></td>
+            
+            <td><?= h($ticket->created->format('Y-m-d')) ?></td>
+            
+            <td class="actions">
+                <?= $this->Html->link(__('View'), ['action' => 'view', $ticket->id], ['class' => 'btn-view']) ?>
+                <?= $this->Html->link(__('Edit'), ['action' => 'edit', $ticket->id], ['class' => 'btn-edit']) ?>
+                
+                <?php if ($ticket->status !== \App\Model\Entity\Ticket::STATUS_CLOSED): ?>
+                    <?= $this->Form->postLink(__('Close'), ['action' => 'edit', $ticket->id], [
+                        'data' => ['status' => \App\Model\Entity\Ticket::STATUS_CLOSED],
+                        'confirm' => __('Are you sure you want to close ticket # {0}?', $ticket->id),
+                        'style' => 'color: green; font-weight: bold;'
+                    ]) ?>
+                <?php endif; ?>
+
+                <?= $this->Form->postLink(__('Delete'), ['action' => 'delete', $ticket->id], ['confirm' => __('Are you sure?'), 'class' => 'btn-delete']) ?>
+            </td>
+        </tr>
+        <?php endforeach; ?>
+    </tbody>
+    </table>
     </div>
     <div class="paginator">
         <ul class="pagination">

@@ -15,10 +15,22 @@
         <div class="users form content">
             <?= $this->Form->create($user) ?>
             <fieldset>
-                <legend><?= __('Add User') ?></legend>
+                <legend><?= __('Edit User') ?></legend>
                 <?php
                     echo $this->Form->control('username');
-                    echo $this->Form->control('password');
+                    echo $this->Form->control('password', [
+                        'value' => '', 
+                        'required' => ($this->request->getParam('action') === 'add'), 
+                        'placeholder' => $user->isNew() ? '' : '*********'
+                    ]);
+                    echo $this->Form->control('confirm_password', [
+                                // 'type' => 'password',
+                                'value' => '',
+                                'label' => 'Confirm Password',
+                                'placeholder' => $user->isNew() ? '' : '*********',
+                                'required' => ($this->request->getParam('action') === 'add')
+                            ]);                    
+
                 ?>
             </fieldset>
             <?= $this->Form->button(__('Submit')) ?>

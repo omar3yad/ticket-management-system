@@ -17,7 +17,8 @@ class TicketsController extends AppController
      */
 public function index()
 {
-    $query = $this->Tickets->find();
+    $userId = $this->Authentication->getIdentity()->getIdentifier();
+    $query = $this->Tickets->find()->where(['user_id' => $userId]);
     if ($this->request->getQuery('search')) {
         $search = $this->request->getQuery('search');
         $query->where([
@@ -49,7 +50,14 @@ public function index()
      */
     public function view($id = null)
     {
-        $ticket = $this->Tickets->get($id, contain: ['Notes']);
+        $userId = $this->Authentication->getIdentity()->getIdentifier();
+        $ticket = $this->Tickets->find()
+            ->where([
+                'Tickets.id' => $id,
+                'Tickets.user_id' => $userId
+            ])
+            ->contain(['Notes'])
+            ->firstOrFail();
         $this->set(compact('ticket'));
     }
 
@@ -63,7 +71,8 @@ public function index()
         $ticket = $this->Tickets->newEmptyEntity();
         if ($this->request->is('post')) {
             $data = $this->request->getData();
-
+            $data['user_id'] = $this->Authentication->getIdentity()->getIdentifier();
+            $ticket = $this->Tickets->patchEntity($ticket, $data);
             $recaptchaToken = $data['g-recaptcha-response'] ?? '';
             $secretKey = "6LdrsaYsAAAAAC8iPq8fT92Is1cFLXjdq2s06nc_";
 
@@ -83,7 +92,7 @@ public function index()
             $responseData = json_decode($response);
 
             if (!$responseData || !$responseData->success || $responseData->score < 0.5) {
-                $this->Flash->error(__('فشل التحقق من الأمان (reCAPTCHA). يرجى المحاولة مرة أخرى.'));
+                $this->Flash->error(__('reCAPTCHA verification failed. Please try again.'));
                 return $this->redirect($this->referer());
             }
 
@@ -111,12 +120,12 @@ public function index()
                 }
 
                 if ($this->Tickets->save($ticket)) {
-                    $this->Flash->success(__('تم إضافة التذكرة بنجاح.'));
+                    $this->Flash->success(__('The ticket has been saved.'));
                     return $this->redirect(['action' => 'index']);
                 }
             }
 
-            $this->Flash->error(__('حدث خطأ، يرجى مراجعة البيانات الموضحة أدناه.'));
+            $this->Flash->error(__('The ticket could not be saved. Please, try again.'));
         }
         $this->set(compact('ticket'));
     }
@@ -158,11 +167,11 @@ public function edit($id = null)
             }
 
             if ($this->Tickets->save($ticket)) {
-                $this->Flash->success(__('تم تحديث التذكرة بنجاح.'));
+                $this->Flash->success(__('The ticket has been updated.'));
                 return $this->redirect(['action' => 'index']);
             }
         }
-        $this->Flash->error(__('حدث خطأ أثناء التحديث، يرجى المحاولة مرة أخرى.'));
+        $this->Flash->error(__('The ticket could not be updated. Please, try again.'));
     }
     $this->set(compact('ticket'));
 }

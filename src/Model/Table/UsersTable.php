@@ -64,7 +64,14 @@ class UsersTable extends Table
             ->scalar('password')
             ->maxLength('password', 255)
             ->requirePresence('password', 'create')
-            ->notEmptyString('password');
+            ->minLength('password', 6, 'The password must be at least 6 characters long.', 'create')
+            ->notEmptyString('password', 'Please enter a password.','create');
+
+        $validator
+            ->allowEmptyString('confirm_password', null, 'update')
+
+            ->sameAs('confirm_password', 'password', 'The password and confirm password fields must match.');
+            
 
         return $validator;
     }

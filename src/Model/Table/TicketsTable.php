@@ -73,6 +73,7 @@ class TicketsTable extends Table
             ->notEmptyString('customer_name');
 
         $validator
+        ->email('customer_email', false, 'Please provide a valid email address.')
             ->scalar('customer_email')
             ->maxLength('customer_email', 100)
             ->requirePresence('customer_email', 'create')
@@ -84,24 +85,28 @@ class TicketsTable extends Table
             ->notEmptyString('message');
 
         $validator
-            ->scalar('priority')
-            ->allowEmptyString('priority');
-
+            ->integer('priority')
+           ->notEmptyString('priority');
+           
+           
+           
         $validator
-            ->scalar('status')
-            ->allowEmptyString('status');
+           ->integer('status')
+           ->notEmptyString('status');
+            
+
 
 $validator
-    ->allowEmptyFile('attachment') 
-    ->add('attachment', 'fileSize', [
+    ->allowEmptyFile('attachment_file') 
+    ->add('attachment_file', 'fileSize', [
         'rule' => ['fileSize', '<=', '2mb'],
-        'message' => 'حجم الملف يجب ألا يتجاوز 2 ميجابايت.',
+        'message' => 'The file size must be less than or equal to 2MB.',
     ])
-    ->add('attachment', 'extension', [
+    ->add('attachment_file', 'extension', [
         'rule' => ['extension', ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx']],
-        'message' => 'الامتداد غير مسموح! المسموح: jpg, png, pdf, doc, docx.',
+        'message' => 'The file extension is not allowed. Allowed extensions: jpg, png, pdf, doc, docx.',
     ])
-    ->add('attachment', 'mimeType', [
+    ->add('attachment_file', 'mimeType', [
         'rule' => ['mimeType', [
             'image/jpeg', 
             'image/png', 
@@ -109,7 +114,7 @@ $validator
             'application/msword', 
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
         ]],
-        'message' => 'نوع الملف غير صحيح.',
+        'message' => 'The file type is not allowed.',
     ]);
 
         return $validator;

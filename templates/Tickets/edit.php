@@ -22,12 +22,20 @@
                     echo $this->Form->control('customer_email');
                     echo $this->Form->control('message', ['rows' => '5']);
                     
-                    echo $this->Form->control('priority', [
-                        'options' => ['Low' => 'Low', 'Medium' => 'Medium', 'High' => 'High']
-                    ]);
-                    echo $this->Form->control('status', [
-                        'options' => ['Open' => 'Open', 'In Progress' => 'In Progress', 'Closed' => 'Closed']
-                    ]);
+echo $this->Form->control('priority', [
+    'options' => [
+        \App\Model\Entity\Ticket::PRIORITY_LOW => 'Low',
+        \App\Model\Entity\Ticket::PRIORITY_MEDIUM => 'Medium',
+        \App\Model\Entity\Ticket::PRIORITY_HIGH => 'High'
+    ]
+]);
+echo $this->Form->control('status', [
+    'options' => [
+        \App\Model\Entity\Ticket::STATUS_OPEN => 'Open',
+        \App\Model\Entity\Ticket::STATUS_IN_PROGRESS => 'In Progress',
+        \App\Model\Entity\Ticket::STATUS_CLOSED => 'Closed'
+    ]
+]);
 
                     echo '<div class="attachment-section" style="margin-top: 20px; padding: 10px; border: 1px solid #ddd;">';
                     if (!empty($ticket->attachment)) {
